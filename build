@@ -1,0 +1,59 @@
+#!/bin/bash
+
+# RUN THIS SCRIPT ON A FRESH EQUINIX ON-DEMAN INSTALL WITH MELLANOX NICS
+# THIS WILL INSTALL ALL DEPENDENT LIBRARIES, BUILD TOOLS, THEN BUILD THIS
+# SOURCE CODE
+
+
+export LD_LIBRARY_PATH=${D}/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}
+export PKG_CONFIG_PATH=${D}/lib/x86_64-linux-gnu/pkgconfig:${PKG_CONFIG_PATH}
+
+#
+# Install some of the prereqs
+#
+apt update
+apt install --yes make numactl libnuma-dev rdma-core git ethtool htop libgtest-dev libgcc-10-dev gcc-10-doc cmake cmake-extras python3-pip ibverbs-providers ibverbs-utils libibverbs-dev libhugetlbfs0 zlib* ncat unzip zip gdb gdb-doc infiniband-diags libmnl-dev pkgconf* linux-tools-common linux-tools-5.15.0-58-generic libibumad-dev libpci-dev autoconf libtool librdmacm-dev
+pip3 install --user meson pyelftools ninja gdown
+# apt upgrade --yes
+# where meson/ninja are installed
+export PATH=/root/.local/bin:${PATH}
+
+# install zig
+snap install zig --classic --beta
+
+#
+# build perftest
+#
+./autogen.sh
+./configure
+make
+
+#
+# Add variables to ~/.bashrc
+#
+echo "export H=${HOME}/Dev" >> ${HOME}/.bashrc
+echo "export D=${HOME}/local" >> ${HOME}/.bashrc
+echo "export PATH=/root/.local/bin:${PATH}" >> ${HOME}/.bashrc
+echo "export LD_LIBRARY_PATH=${D}/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu" >> ${HOME}/.bashrc
+echo "export PKG_CONFIG_PATH=${D}/lib/x86_64-linux-gnu/pkgconfig" >> ${HOME}/.bashrc
+echo "alias ll=\"ls -la\"" >> ${HOME}/.bashrc
+echo "alias edit=\"vi\"" >> ${HOME}/.bashrc
+echo "alias ppjson=\"python3 -m json.tool\"" >> ${HOME}/.bashrc
+
+#
+# Add variables to .vimrc
+#
+echo "set expandtab" > ~/.vimrc
+echo "set tabstop=2" >> ~/.vimrc
+echo "set shiftwidth=2" >> ~/.vimrc
+echo "set bg=dark" >> ~/.vimrc
+echo "set noautoindent" >> ~/.vimrc
+echo "set nosmartindent" >> ~/.vimrc
+echo "set nocindent" >> ~/.vimrc
+echo "set wrap" >> ~/.vimrc
+echo ":syntax off" >> ~/.vimrc
+echo ":set colorcolumn=120" >> ~/.vimrc
+
+# git needs this
+git config --global user.email "gshanemiller6@gmail.com"
+git config --global user.name "smiller"
