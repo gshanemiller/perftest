@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# send from non-bond NIC to bond NIC
+
+SOURCE_PORT="-k 10000"
+SOURCE_IP="192.168.0.2"
+SOURCE_MAC="-B 08:c0:eb:d4:d0:df"
+
+DEST_PORT="-K 10000"
+DEST_IP="-J 10.68.147.1"
+DEST_MAC="-E 08:c0:eb:d4:d0:de"
+
+LISTEN_PORT="-p 20000"
+
+ITERATIONS="-n 5000"
+
+SERVER_CPU=3
+CLIENT_CPU=5
+
+SERVER_ARGS="${SOURCE_MAC} -j ${SOURCE_IP} ${SOURCE_PORT} ${DEST_MAC} ${DEST_IP} ${DEST_PORT} ${LISTEN_PORT} ${ITERATIONS} --server"
+CLIENT_ARGS="${SOURCE_MAC} -j ${SOURCE_IP} ${SOURCE_PORT} ${DEST_MAC} ${DEST_IP} ${DEST_PORT} ${LISTEN_PORT} ${ITERATIONS} --client"
+
+TASK="./raw_ethernet_bw"
+
+if [[ "$1" == "server" ]]
+then
+  taskset -c ${SERVER_CPU} ${TASK} ${SERVER_ARGS}
+elif [[ "$1" == "client" ]]
+then
+  taskset -c ${CLIENT_CPU} ${TASK} ${CLIENT_ARGS}
+else
+  echo "usage: ./run <client|server>"
+  exit 2
+fi
+
+exit $?
