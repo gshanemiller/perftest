@@ -1,26 +1,32 @@
 #!/bin/bash
 
+if [[ "$1" != "server" ]] && [[ "$1" != "client" ]]
+then
+  echo "usage: ./run <client|server>"
+  exit 2
+fi
+
 # send from non-bond NIC to bond NIC
 
-CLIENT_PORT="-k 10000"
-CLIENT_IP="-j 192.168.0.2"
-CLIENT_MAC="-B 08:c0:eb:d4:ec:07"
-CLIENT_IB_DEV="-d mlx5_1"
+CLIENT_PORT="10000"
+CLIENT_IP="192.168.0.2"
+CLIENT_MAC="08:c0:eb:d4:ec:07"
 
-SERVER_PORT="-K 10013"
-SERVER_IP="-J 10.68.147.1"
-SERVER_MAC="-E 08:c0:eb:d4:ec:06"
-SERVER_IB_DEV="-d mlx5_0"
+SERVER_PORT="10013"
+SERVER_IP="10.68.147.1"
+SERVER_MAC="08:c0:eb:d4:ec:06"
 
-LISTEN_PORT="-p 20000"
+# ibstatus and/or setup provides this
+SERVER_IB_DEV="rocep1s0f0"
+CLIENT_IB_DEV="rocep1s0f1"
 
 ITERATIONS="-n 1000000"
 
 SERVER_CPU=3
 CLIENT_CPU=5
 
-SERVER_ARGS="--use_hugepages ${SERVER_IB_DEV} ${SERVER_MAC} ${SERVER_IP} ${SERVER_PORT} ${CLIENT_MAC} ${CLIENT_IP} ${CLIENT_PORT} ${LISTEN_PORT} ${ITERATIONS} --server"
-CLIENT_ARGS="--use_hugepages ${CLIENT_IB_DEV} ${SERVER_MAC} ${SERVER_IP} ${SERVER_PORT} ${CLIENT_MAC} ${CLIENT_IP} ${CLIENT_PORT} ${LISTEN_PORT} ${ITERATIONS} --client"
+SERVER_ARGS="-d ${SERVER_IB_DEV} -E ${SERVER_MAC} -B ${CLIENT_MAC} -J ${SERVER_IP} -K ${SERVER_PORT} -j ${CLIENT_IP} -k ${CLIENT_PORT} ${ITERATIONS} --server"
+CLIENT_ARGS="-d ${CLIENT_IB_DEV} -B ${CLIENT_MAC} -E ${SERVER_MAC} -J ${SERVER_IP} -K ${SERVER_PORT} -j ${CLIENT_IP} -k ${CLIENT_PORT} ${ITERATIONS} --client"
 
 TASK="./raw_ethernet_bw"
 
@@ -28,13 +34,11 @@ TASK="./raw_ethernet_bw"
 
 if [[ "$1" == "server" ]]
 then
+  # gdb --args ${TASK} ${SERVER_ARGS}
   taskset -c ${SERVER_CPU} ${TASK} ${SERVER_ARGS}
-elif [[ "$1" == "client" ]]
-then
-  taskset -c ${CLIENT_CPU} ${TASK} ${CLIENT_ARGS}
 else
-  echo "usage: ./run <client|server>"
-  exit 2
+  # gdb --args ${TASK} ${CLIENT_ARGS}
+  taskset -c ${CLIENT_CPU} ${TASK} ${CLIENT_ARGS}
 fi
 
 exit $?
