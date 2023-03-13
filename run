@@ -6,31 +6,30 @@ then
   exit 2
 fi
 
-# send from non-bond NIC to bond NIC
-
+# use same NIC for both client/server
 CLIENT_PORT="10000"
 CLIENT_IP="192.168.0.2"
 CLIENT_MAC="08:c0:eb:d4:ec:07"
 
 SERVER_PORT="10013"
-SERVER_IP="10.68.147.1"
-SERVER_MAC="08:c0:eb:d4:ec:06"
+SERVER_IP="192.168.0.2"
+SERVER_MAC="08:c0:eb:d4:ec:07"
 
 # ibstatus and/or setup provides this
-SERVER_IB_DEV="rocep1s0f0"
+SERVER_IB_DEV="rocep1s0f1"
 CLIENT_IB_DEV="rocep1s0f1"
 
-ITERATIONS="-n 1000000"
+ITERATIONS="-n 20000"
 
 SERVER_CPU=3
 CLIENT_CPU=5
 
-SERVER_ARGS="-d ${SERVER_IB_DEV} -E ${SERVER_MAC} -B ${CLIENT_MAC} -J ${SERVER_IP} -K ${SERVER_PORT} -j ${CLIENT_IP} -k ${CLIENT_PORT} ${ITERATIONS} --server"
-CLIENT_ARGS="-d ${CLIENT_IB_DEV} -B ${CLIENT_MAC} -E ${SERVER_MAC} -J ${SERVER_IP} -K ${SERVER_PORT} -j ${CLIENT_IP} -k ${CLIENT_PORT} ${ITERATIONS} --client"
+SERVER_ARGS="--use_hugepages -d ${SERVER_IB_DEV} -E ${SERVER_MAC} -B ${CLIENT_MAC} -J ${SERVER_IP} -K ${SERVER_PORT} -j ${CLIENT_IP} -k ${CLIENT_PORT} ${ITERATIONS} --server"
+CLIENT_ARGS="--use_hugepages -d ${CLIENT_IB_DEV} -B ${CLIENT_MAC} -E ${SERVER_MAC} -J ${SERVER_IP} -K ${SERVER_PORT} -j ${CLIENT_IP} -k ${CLIENT_PORT} ${ITERATIONS} --client"
 
 TASK="./raw_ethernet_bw"
 
-./setup
+# ./setup
 
 if [[ "$1" == "server" ]]
 then
