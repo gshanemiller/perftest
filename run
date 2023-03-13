@@ -24,6 +24,8 @@ CLIENT_ARGS="--use_hugepages ${CLIENT_IB_DEV} ${SERVER_MAC} ${SERVER_IP} ${SERVE
 
 TASK="./raw_ethernet_bw"
 
+./setup
+
 if [[ "$1" == "server" ]]
 then
   taskset -c ${SERVER_CPU} ${TASK} ${SERVER_ARGS}

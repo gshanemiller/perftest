@@ -41,40 +41,10 @@ tar zxvf ${MFT}
 cd ${MFT%%.tgz}
 ./install.sh --oem
 
-mst start
-mst status -v
-
-# add two (2) 1Gb hugepages by running DPDK's helper script
-cd ~/Dev/perftest
-./dpdk-hugepages.py --clear
-./dpdk-hugepages.py --setup 2G --pagesize 1G
-./dpdk-hugepages.py --show
-echo
-
-# just in case, load modules needed
-modprobe -a ib_uverbs mlx5_core mlx5_ib
-
-# correct numa node
-echo 0 > /sys/devices/pci0000:00/0000:00:01.0/0000:01:00.0/numa_node
-echo 0 > /sys/devices/pci0000:00/0000:00:01.0/0000:01:00.1/numa_node
-
-# print the FW versions in the NICs:
-echo mt4119_pciconf0 Firmware:
-echo --------------------------------------------------------------
-flint --qq -d /dev/mst/mt4119_pciconf0 query
-echo
-echo mt4119_pciconf0.1 Firmware:
-echo --------------------------------------------------------------
-flint --qq -d /dev/mst/mt4119_pciconf0.1 query
-
-mlxconfig -y -d /dev/mst/mt4119_pciconf0   set KEEP_IB_LINK_UP_P1=1 KEEP_IB_LINK_UP_P2=1
-mlxconfig -y -d /dev/mst/mt4119_pciconf0.1 set KEEP_IB_LINK_UP_P1=1 KEEP_IB_LINK_UP_P2=1
-
-# -----------------------------------------------------------
-
 #
 # build perftest
 #
+cd ~/Dev/perftest
 ./autogen.sh
 ./configure
 make
