@@ -16,16 +16,23 @@ SERVER_IP="192.168.0.2"
 SERVER_MAC="08:c0:eb:d4:ec:07"
 
 # ibstatus and/or setup provides this
-SERVER_IB_DEV="rocep1s0f1"
 CLIENT_IB_DEV="rocep1s0f1"
+SERVER_IB_DEV="rocep1s0f1"
+
+# QUEUE SIZES
+CLIENT_TX_SIZE="-t 2048"
+SERVER_RX_SIZE="-r 2048"
+
+# MESSAGE SIZE
+MESSAGE_SIZE="-s 32"
 
 ITERATIONS="-n 20000"
 
 SERVER_CPU=3
 CLIENT_CPU=5
 
-SERVER_ARGS="--use_hugepages -d ${SERVER_IB_DEV} -E ${SERVER_MAC} -B ${CLIENT_MAC} -J ${SERVER_IP} -K ${SERVER_PORT} -j ${CLIENT_IP} -k ${CLIENT_PORT} ${ITERATIONS} --server"
-CLIENT_ARGS="--use_hugepages -d ${CLIENT_IB_DEV} -B ${CLIENT_MAC} -E ${SERVER_MAC} -J ${SERVER_IP} -K ${SERVER_PORT} -j ${CLIENT_IP} -k ${CLIENT_PORT} ${ITERATIONS} --client"
+CLIENT_ARGS="${MESSAGE_SIZE} ${CLIENT_TX_SIZE} -d ${CLIENT_IB_DEV} -B ${CLIENT_MAC} -E ${SERVER_MAC} -J ${SERVER_IP} -K ${SERVER_PORT} -j ${CLIENT_IP} -k ${CLIENT_PORT} ${ITERATIONS} --client --use_hugepages --report-both --mr_per_qp"
+SERVER_ARGS="${MESSAGE_SIZE} ${SERVER_RX_SIZE} -d ${SERVER_IB_DEV} -E ${SERVER_MAC} -B ${CLIENT_MAC} -J ${SERVER_IP} -K ${SERVER_PORT} -j ${CLIENT_IP} -k ${CLIENT_PORT} ${ITERATIONS} --server --use_hugepages --report-both --mr_per_qp"
 
 TASK="./raw_ethernet_bw"
 
@@ -38,6 +45,7 @@ then
 else
   # gdb --args ${TASK} ${CLIENT_ARGS}
   taskset -c ${CLIENT_CPU} ${TASK} ${CLIENT_ARGS}
+  # perf record taskset -c ${CLIENT_CPU} ${TASK} ${CLIENT_ARGS}
 fi
 
 exit $?
