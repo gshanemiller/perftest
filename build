@@ -11,7 +11,7 @@ export PKG_CONFIG_PATH=${D}/lib/x86_64-linux-gnu/pkgconfig:${PKG_CONFIG_PATH}
 # Install some of the prereqs
 #
 apt update
-apt install --yes make numactl libnuma-dev rdma-core git ethtool htop libgtest-dev libgcc-10-dev gcc-10-doc cmake cmake-extras python3-pip ibverbs-providers ibverbs-utils libibverbs-dev libhugetlbfs0 zlib* ncat unzip zip gdb gdb-doc infiniband-diags libmnl-dev pkgconf* linux-tools-common linux-tools-5.15.0-58-generic libibumad-dev libpci-dev autoconf libtool librdmacm-dev
+apt install --yes make numactl libnuma-dev rdma-core git ethtool htop libgtest-dev libgcc-10-dev gcc-10-doc cmake cmake-extras python3-pip ibverbs-providers ibverbs-utils libibverbs-dev libhugetlbfs0 zlib* ncat unzip zip gdb gdb-doc infiniband-diags libmnl-dev pkgconf* linux-tools-common linux-tools-5.15.0-58-generic libibumad-dev libpci-dev autoconf libtool librdmacm-dev linux-headers-5.15.0-58-generic dkms
 pip3 install --user meson pyelftools ninja gdown
 # apt upgrade --yes
 # where meson/ninja are installed
@@ -24,7 +24,6 @@ snap install zig --classic --beta
 # install MST tool set
 mkdir -p ~/Dev/tmp
 cd ~/Dev/tmp
-apt install --yes linux-headers-5.15.0-58-generic dkms
 rm -rf *MFT*
 MFT="mft-4.23.0-104-x86_64-deb.tgz"
 MFT_CHECKSUM="13335ebec8e62bc7bdfb7ce55d897765587be8461c027f9f97a868eeaf8c8f56"
@@ -67,6 +66,9 @@ echo
 echo mt4119_pciconf0.1 Firmware:
 echo --------------------------------------------------------------
 flint --qq -d /dev/mst/mt4119_pciconf0.1 query
+
+mlxconfig -y -d /dev/mst/mt4119_pciconf0   set KEEP_IB_LINK_UP_P1=1 KEEP_IB_LINK_UP_P2=1
+mlxconfig -y -d /dev/mst/mt4119_pciconf0.1 set KEEP_IB_LINK_UP_P1=1 KEEP_IB_LINK_UP_P2=1
 
 # -----------------------------------------------------------
 
