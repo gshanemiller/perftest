@@ -4,7 +4,6 @@
 # THIS WILL INSTALL ALL DEPENDENT LIBRARIES, BUILD TOOLS, THEN BUILD THIS
 # SOURCE CODE
 
-
 export LD_LIBRARY_PATH=${D}/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}
 export PKG_CONFIG_PATH=${D}/lib/x86_64-linux-gnu/pkgconfig:${PKG_CONFIG_PATH}
 
@@ -20,6 +19,56 @@ export PATH=/root/.local/bin:${PATH}
 
 # install zig
 snap install zig --classic --beta
+
+# -----------------------------------------------------------
+# install MST tool set
+mkdir -p ~/Dev/tmp
+cd ~/Dev/tmp
+apt install --yes linux-headers-5.15.0-58-generic dkms
+rm -rf *MFT*
+MFT="mft-4.23.0-104-x86_64-deb.tgz"
+MFT_CHECKSUM="13335ebec8e62bc7bdfb7ce55d897765587be8461c027f9f97a868eeaf8c8f56"
+wget https://www.mellanox.com/downloads/MFT/${MFT}
+ACTUAL_CHECKSUM=`sha256sum ./${MFT} | cut -d" " -f1`
+if [[ "$MFT_CHECKSUM" != "$ACTUAL_CHECKSUM" ]]
+then
+  echo "fatal: file: ${MFT}"
+  echo "fatal: actual          checksum: ${ACTUAL_CHECKSUM}"
+  echo "fatal: expected NVIDIA checksum: ${MFT_CHECKSUM}"
+  exit 1
+fi
+
+tar zxvf ${MFT}
+cd ${MFT%%.tgz}
+./install.sh --oem
+
+mst start
+mst status -v
+
+# add two (2) 1Gb hugepages by running DPDK's helper script
+cd ~/Dev/perftest
+./dpdk-hugepages.py --clear
+./dpdk-hugepages.py --setup 2G --pagesize 1G
+./dpdk-hugepages.py --show
+echo
+
+# just in case, load modules needed
+modprobe -a ib_uverbs mlx5_core mlx5_ib
+
+# correct numa node
+echo 0 > /sys/devices/pci0000:00/0000:00:01.0/0000:01:00.0/numa_node
+echo 0 > /sys/devices/pci0000:00/0000:00:01.0/0000:01:00.1/numa_node
+
+# print the FW versions in the NICs:
+echo mt4119_pciconf0 Firmware:
+echo --------------------------------------------------------------
+flint --qq -d /dev/mst/mt4119_pciconf0 query
+echo
+echo mt4119_pciconf0.1 Firmware:
+echo --------------------------------------------------------------
+flint --qq -d /dev/mst/mt4119_pciconf0.1 query
+
+# -----------------------------------------------------------
 
 #
 # build perftest
@@ -57,3 +106,8 @@ echo ":set colorcolumn=120" >> ~/.vimrc
 # git needs this
 git config --global user.email "gshanemiller6@gmail.com"
 git config --global user.name "smiller"
+
+# 
+echo
+read -p "Press ENTER to reboot now or CTRL-C to exit: "
+reboot
